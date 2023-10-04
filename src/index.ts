@@ -66,7 +66,22 @@ const emptyKPTContents = Object.fromEntries(
   kptContentsKinds.map(kind => [kind, ''])
 ) as KPTContents
 
+const listify = (
+  identifier: string
+) => (
+  line: string
+): string => {
+  const line$ = line.replace(/[\s　]/, '  ')
+  const matches = line$.match(/^(\s*)(\s)([^\s]+)$/)?.slice(1)
+  if (!matches) return line
+
+  const [indents$, _, contents] = matches
+  const indents = indents$.length === 1 ? '' : indents$
+  return `${indents}${identifier}${contents}`
+}
+
 const parseAsKPTContents = (contents: string): KPTContents => {
+  const IDENTIFIER = '・'
   const [_title, ...chunks] = contents.split('\n\n')
 
   return chunks.reduce<KPTContents>((kpt, chunk) => {
@@ -77,7 +92,7 @@ const parseAsKPTContents = (contents: string): KPTContents => {
     if (!kind) return kpt
     if (!(kptContentsKinds as readonly string[]).includes(kind)) return kpt
 
-    return { ...kpt, [kind]: contents.join('\n') }
+    return { ...kpt, [kind]: contents.map(listify(IDENTIFIER)).join('\n') }
   }, emptyKPTContents)
 }
 
